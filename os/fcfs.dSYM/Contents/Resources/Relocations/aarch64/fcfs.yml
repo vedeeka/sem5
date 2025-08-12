@@ -1,5 +1,5 @@
 ---
 triple:          'arm64-apple-darwin'
-binary-path:     '/Users/vedeekaparab/Desktop/new/fcfs'
+binary-path:     '/Users/vedeekaparab/Desktop/sem5/os/fcfs'
 relocations:     []
 ...
