@@ -64,13 +64,15 @@ awt+=pro[ind[i]].wt;
 atat=atat/n;
 awt=awt/n;
 printf("\n");
-printf("%-10s %-10s %-10s %-10s %-10s","Process","AT","BT","TAT","WT");
-printf("\n");
+
+printf("+------------+----------+----------+----------+----------+\n");
+printf("| %-10s | %-8s | %-8s | %-8s | %-8s |\n","Process","AT","BT","TAT","WT");
+printf("+------------+----------+----------+----------+----------+\n");
 for(int i=0;i<n;i++){
-   printf(" %-10s %-10d %-10d %-10d %-10d",pro[i].proc_name, pro[i].at, pro[i].bt, pro[i].tat, pro[i].wt);
-   printf("\n");
+   printf("| %-10s | %-8d | %-8d | %-8d | %-8d |\n",pro[i].proc_name, pro[i].at, pro[i].bt, pro[i].tat, pro[i].wt);
 }
-printf("\n");
+printf("+------------+----------+----------+----------+----------+\n\n");
+printf("Gantt Chart :\n");
 printf("--------------------------------------------------\n");
 for(int i=0;i<n;i++){
    printf("| %-10s |",pro[ind[i]].proc_name);
@@ -78,16 +80,17 @@ for(int i=0;i<n;i++){
 printf("\n");
 printf("--------------------------------------------------\n");
 
-
+printf(" 0");
 for(int i=0;i<n;i++){
    printf("  %-10d  ",arr[i]);
 }
 
-
 printf("\n");
 printf("--------------------------------------------------\n");
-printf("Average Turn Around Time is %d\n",atat);
-printf("Average Waiting Time is %d\n",awt);
+double avg_tat = (double)atat;
+double avg_wt = (double)awt;
+printf("Average Turnaround Time: %.2f\n", avg_tat);
+printf("Average Waiting Time   : %.2f\n", avg_wt);
 printf("--------------------------------------------------\n");
 
 
@@ -97,19 +100,19 @@ printf("--------------------------------------------------\n");
 
 int main(){
 
-printf("Enter the no of processes");
+printf("Enter the no of processes :");
 scanf("%d",&n);
 
 struct process pro[n];
 
 for(int i=0;i<n;i++){
-printf("Enter the name of process");
+printf("Enter the name of process: ");
 scanf("%s",&pro[i].proc_name);
 
-printf("Enter the arrival time of process");
+printf("Enter the arrival time of process : ");
 scanf("%d",&pro[i].at);
 
-printf("Enter the burst time of process");
+printf("Enter the burst time of process :");
 scanf("%d",&pro[i].bt);
 
 pro[i].tat=0;
