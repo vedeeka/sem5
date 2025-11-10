@@ -18,7 +18,7 @@ int isEmpty() {
 // Producer = Insert into circular queue
 void enqueue(int value) {
     if (isFull()) {
-        printf("Queue is FULL! Cannot insert %d\n", value);
+        printf("Buffer is FULL! Cannot insert %d\n", value);
     } else {
         if (front == -1) front = 0;
         rear = (rear + 1) % SIZE;
@@ -30,7 +30,7 @@ void enqueue(int value) {
 // Consumer = Remove from circular queue
 int dequeue() {
     if (isEmpty()) {
-        printf("Queue is EMPTY! Nothing to consume\n");
+        printf("Buffer is EMPTY! Nothing to consume\n");
         return -1;
     } else {
         int value = queue[front];
@@ -65,10 +65,10 @@ int main() {
     int choice, value;
 
     while (1) {
-        printf("\n--- Circular Queue (Producer-Consumer Style) ---\n");
-        printf("1. Produce (Enqueue)\n");
-        printf("2. Consume (Dequeue)\n");
-        printf("3. Display Queue\n");
+        printf("\n---  (Producer-Consumer ) ---\n");
+        printf("1. Produce \n");
+        printf("2. Consume \n");
+
         printf("4. Exit\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
@@ -78,13 +78,13 @@ int main() {
                 printf("Enter value to produce: ");
                 scanf("%d", &value);
                 enqueue(value);
+                   display();
                 break;
             case 2:
                 dequeue();
+                   display();
                 break;
-            case 3:
-                display();
-                break;
+           
             case 4:
                 exit(0);
             default:

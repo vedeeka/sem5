@@ -9,14 +9,22 @@ int available[MAX_R];
 int max[MAX_P][MAX_R];
 int allocation[MAX_P][MAX_R];
 int need[MAX_P][MAX_R];
-int work2D[MAX_P][MAX_R]; // stores available after each process finishes
-int safeSeq[MAX_P];        // stores the safe sequence
+int work2D[MAX_P][MAX_R];
+int safeSeq[MAX_P];
+
+
+int prevAvailable[MAX_R];
+int prevAllocation[MAX_P][MAX_R];
+int prevNeed[MAX_P][MAX_R];
+int prevWork2D[MAX_P][MAX_R];
+int prevSafeSeq[MAX_P];
 
 void calculateNeed() {
     for (int i = 0; i < n; i++)
         for (int j = 0; j < m; j++) {
             need[i][j] = max[i][j] - allocation[i][j];
-            if (need[i][j] < 0) need[i][j] = 0;
+            if (need[i][j] < 0)
+                need[i][j] = 0;
         }
 }
 
@@ -31,8 +39,6 @@ bool safetyAlgorithm() {
     for (int i = 0; i < n; i++)
         finish[i] = false;
 
-    printf("\nProcess finishing sequence and available updates:\n");
-
     while (count < n) {
         bool found = false;
         for (int i = 0; i < n; i++) {
@@ -42,92 +48,31 @@ bool safetyAlgorithm() {
                     if (need[i][j] > work[j])
                         break;
 
-                if (j == m) { // process i can finish
+                if (j == m) {
                     for (int k = 0; k < m; k++)
                         work[k] += allocation[i][k];
-
                     finish[i] = true;
                     safeSeq[count] = i;
-
                     for (int k = 0; k < m; k++)
-                        work2D[count][k] = work[k]; // store available after finishing
-
-                    printf("Process P%d finished. Available: ", i + 1);
-                    for (int k = 0; k < m; k++)
-                        printf("%d ", work[k]);
-                    printf("\n");
-
+                        work2D[count][k] = work[k];
                     count++;
                     found = true;
                 }
             }
         }
-
-        if (!found) {
-            printf("\n❌ System is in an UNSAFE state.\n");
+        if (!found)
             return false;
-        }
     }
-
-    printf("\n✅ System is in a SAFE state.\nSafe Sequence: ");
-    for (int i = 0; i < n; i++)
-        printf("P%d ", safeSeq[i] + 1);
-    printf("\n");
-
     return true;
-}
-
-void resourceRequestAlgorithm() {
-    int process;
-    int request[MAX_R];
-
-    printf("\nEnter process number making request (1-%d): ", n);
-    scanf("%d", &process);
-    process--;
-
-    printf("Enter request vector (%d values): ", m);
-    for (int i = 0; i < m; i++)
-        scanf("%d", &request[i]);
-
-    for (int i = 0; i < m; i++) {
-        if (request[i] > need[process][i]) {
-            printf("❌ Error: Request exceeds maximum claim.\n");
-            return;
-        }
-        if (request[i] > available[i]) {
-            printf("⚠️ Not enough resources available. Process must wait.\n");
-            return;
-        }
-    }
-
-    // pretend allocation
-    for (int i = 0; i < m; i++) {
-        available[i] -= request[i];
-        allocation[process][i] += request[i];
-        need[process][i] -= request[i];
-    }
-
-    printf("\nPretend allocation done. Checking safety...\n");
-    if (safetyAlgorithm()) {
-        printf("✅ Request can be safely granted.\n");
-    } else {
-        printf("❌ Request leads to unsafe state. Rolling back.\n");
-        for (int i = 0; i < m; i++) {
-            available[i] += request[i];
-            allocation[process][i] -= request[i];
-            need[process][i] += request[i];
-        }
-    }
 }
 
 void displayData() {
     printf("\n-------------------------------------------------------------\n");
-    printf("Process | Allocation\t | Max\t\t | Need\t\t | Available\n");
+    printf("Process | Allocation\t | Max\t\t | Need\t\t | Available After\n");
     printf("-------------------------------------------------------------\n");
 
-    // display in the order of safe sequence
     for (int i = 0; i < n; i++) {
-        int p = safeSeq[i]; // process index in safe sequence
+        int p = safeSeq[i];
         printf("P%d\t | ", p + 1);
         for (int j = 0; j < m; j++)
             printf("%d ", allocation[p][j]);
@@ -139,10 +84,98 @@ void displayData() {
             printf("%d ", need[p][j]);
         printf("\t | ");
         for (int j = 0; j < m; j++)
-            printf("%d ", work2D[i][j]); // available after process finishes
+            printf("%d ", work2D[i][j]);
         printf("\n");
     }
     printf("-------------------------------------------------------------\n");
+
+    printf("Safe Sequence: ");
+    for (int i = 0; i < n; i++)
+        printf("P%d ", safeSeq[i] + 1);
+    printf("\n System is in a SAFE state.\n");
+}
+
+void backupState() {
+    for (int i = 0; i < m; i++)
+        prevAvailable[i] = available[i];
+    for (int i = 0; i < n; i++) {
+        prevSafeSeq[i] = safeSeq[i];
+        for (int j = 0; j < m; j++) {
+            prevAllocation[i][j] = allocation[i][j];
+            prevNeed[i][j] = need[i][j];
+            prevWork2D[i][j] = work2D[i][j];
+        }
+    }
+}
+
+void restoreState() {
+    for (int i = 0; i < m; i++)
+        available[i] = prevAvailable[i];
+    for (int i = 0; i < n; i++) {
+        safeSeq[i] = prevSafeSeq[i];
+        for (int j = 0; j < m; j++) {
+            allocation[i][j] = prevAllocation[i][j];
+            need[i][j] = prevNeed[i][j];
+            work2D[i][j] = prevWork2D[i][j];
+        }
+    }
+}
+
+void showPreviousSafeState() {
+    printf("\nReverting to previous safe state:\n");
+    restoreState();
+    displayData();
+}
+
+void resourceRequestAlgorithm() {
+    int process, request[MAX_R];
+
+    printf("\nEnter process number making request (1-%d): ", n);
+    scanf("%d", &process);
+    process--;
+
+    printf("Enter request vector (%d values): ", m);
+    for (int i = 0; i < m; i++)
+        scanf("%d", &request[i]);
+
+    // Check 1: Request <= Need
+    for (int i = 0; i < m; i++) {
+        if (request[i] > need[process][i]) {
+            printf("Request exceeds process maximum Need.\n");
+            showPreviousSafeState();
+            return;
+        }
+    }
+
+    // Check 2: Request <= Available
+    for (int i = 0; i < m; i++) {
+        if (request[i] > available[i]) {
+            printf("Not enough resources available. \n");
+            showPreviousSafeState();
+            return;
+        }
+    }
+
+    // Backup current safe state
+    backupState();
+
+    // Pretend allocation
+    for (int i = 0; i < m; i++) {
+        available[i] -= request[i];
+        allocation[process][i] += request[i];
+        need[process][i] -= request[i];
+    }
+
+    printf("\nPretend allocation done. Checking safety...\n");
+
+    if (safetyAlgorithm()) {
+        printf(" Request can be safely granted.\n");
+        displayData();
+        backupState(); // update last safe state
+    } else {
+        printf(" Request leads to an UNSAFE state. Rolling back...\n");
+        showPreviousSafeState();
+    }
 }
 
 int main() {
@@ -168,15 +201,25 @@ int main() {
     calculateNeed();
 
     printf("\nInitial System State:\n");
-    safetyAlgorithm(); // calculate safe sequence
-    displayData();     // display table in safe sequence order
+    if (safetyAlgorithm()) {
+        printf("\n System is initially in a SAFE state.\n");
+        displayData();
+        backupState();
+    } else {
+        printf("\n Initial system state is UNSAFE. Exiting.\n");
+        return 0;
+    }
 
     char choice;
-    printf("\nDo you want to make a resource request? (y/n): ");
-    scanf(" %c", &choice);
-    if (choice == 'y' || choice == 'Y') {
-        resourceRequestAlgorithm();
-        displayData();
+    while (1) {
+        printf("\nDo you want to make a new resource request? (y/n): ");
+        scanf(" %c", &choice);
+        if (choice == 'y' || choice == 'Y') {
+            resourceRequestAlgorithm();
+        } else {
+            printf("\nExiting...\n");
+            break;
+        }
     }
 
     return 0;
