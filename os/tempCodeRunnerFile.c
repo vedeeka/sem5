@@ -1,98 +1,71 @@
 #include <stdio.h>
-#include <string.h>
-#define MAX 10
-
-struct process {
-    char proc_name[MAX];
-    int bt, at, tat, wt, rbt;
-};
-
-int n;
-int tq; 
-
-void roundRobin(struct process pro[]) {
-    int time = 0, completed = 0;
-    int atat = 0, awt = 0;
-
-   
-    for (int i = 0; i < n; i++) {
-        pro[i].rbt = pro[i].bt;
-    }
-
-    printf("\nGantt Chart :\n");
-    printf("--------------------------------------------------\n");
-
-  
-    int ct[n];
-
-    while (completed < n) {
-        int done = 1;
-        for (int i = 0; i < n; i++) {
-            if (pro[i].rbt > 0 && pro[i].at <= time) {
-                done = 0;
-                printf("| %-10s ", pro[i].proc_name);
-
-                if (pro[i].rbt > tq) {
-                    time += tq;
-                    pro[i].rbt -= tq;
-                } else {
-                    time += pro[i].rbt;
-                    pro[i].tat = time - pro[i].at;
-                    pro[i].wt = pro[i].tat - pro[i].bt;
-                    atat += pro[i].tat;
-                    awt += pro[i].wt;
-                    pro[i].rbt = 0;
-                    completed++;
-                }
-            }
-        }
-       
-        if (done) {
-            time++;
-        }
-    }
-
-    printf("|\n");
-    printf("--------------------------------------------------\n\n");
-
-    printf("+------------+----------+----------+----------+----------+\n");
-    printf("| %-10s | %-8s | %-8s | %-8s | %-8s |\n", "Process", "AT", "BT", "TAT", "WT");
-    printf("+------------+----------+----------+----------+----------+\n");
-    for (int i = 0; i < n; i++) {
-        printf("| %-10s | %-8d | %-8d | %-8d | %-8d |\n",
-               pro[i].proc_name, pro[i].at, pro[i].bt, pro[i].tat, pro[i].wt);
-    }
-    printf("+------------+----------+----------+----------+----------+\n");
-
-    double avg_tat = (double)atat / n;
-    double avg_wt = (double)awt / n;
-    printf("\nAverage Turnaround Time: %.2f\n", avg_tat);
-    printf("Average Waiting Time   : %.2f\n", avg_wt);
-    printf("--------------------------------------------------\n");
-}
 
 int main() {
-    printf("Enter the no of processes: ");
+    int pages[50], frames[10], n, f, i, j, k, pos, flag, fault = 0, future[10];
+
+    printf("Enter number of pages: ");
     scanf("%d", &n);
+    printf("Enter page reference string: ");
+    for(i = 0; i < n; i++)
+        scanf("%d", &pages[i]);
+    printf("Enter number of frames: ");
+    scanf("%d", &f);
 
-    struct process pro[n];
+    for(i = 0; i < f; i++)
+        frames[i] = -1;
 
-    for (int i = 0; i < n; i++) {
-        printf("Enter the name of process: ");
-        scanf("%s", pro[i].proc_name);
+    for(i = 0; i < n; i++) {
+        flag = 0;
 
-        printf("Enter the arrival time of process: ");
-        scanf("%d", &pro[i].at);
+        for(j = 0; j < f; j++) {
+            if(frames[j] == pages[i]) {
+                flag = 1;
+                break;
+            }
+        }
 
-        printf("Enter the burst time of process: ");
-        scanf("%d", &pro[i].bt);
+        if(flag == 0) {
+            for(j = 0; j < f; j++) {
+                if(frames[j] == -1) {
+                    pos = j;
+                    flag = 2;
+                    break;
+                }
+            }
 
-        pro[i].tat = 0;
-        pro[i].wt = 0;
+            if(flag != 2) {
+                for(j = 0; j < f; j++) {
+                    future[j] = -1;
+                    for(k = i + 1; k < n; k++) {
+                        if(frames[j] == pages[k]) {
+                            future[j] = k;
+                            break;
+                        }
+                    }
+                }
+
+                int max = -1;
+                for(j = 0; j < f; j++) {
+                    if(future[j] == -1) {
+                        pos = j;
+                        break;
+                    }
+                    if(future[j] > max) {
+                        max = future[j];
+                        pos = j;
+                    }
+                }
+            }
+
+            frames[pos] = pages[i];
+            fault++;
+        }
+
+        printf("\n");
+        for(j = 0; j < f; j++)
+            printf("%d ", frames[j]);
     }
 
-    printf("Enter Time Quantum: ");
-    scanf("%d", &tq);
-
-    roundRobin(pro);
+    printf("\n\nTotal Page Faults = %d\n", fault);
+    return 0;
 }

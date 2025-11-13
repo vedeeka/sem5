@@ -24,24 +24,44 @@ int main() {
         allocation[i] = -1; // no allocation yet
     }
 
-    // Best Fit Allocation Logic
+    // Best Fit Allocation Logic with iteration + remaining memory display
+    printf("\n===== Best Fit Allocation Process =====\n");
     for (i = 0; i < nProcesses; i++) {
         bestIdx = -1;
+        printf("\nIteration %d: Trying to allocate Process %d (Size %d)\n",
+               i + 1, i + 1, processSize[i]);
+
         for (j = 0; j < nBlocks; j++) {
+            printf("  Checking block (Available %d)... ", blockSize[j]);
             if (blockSize[j] >= processSize[i]) {
+                printf("Fits");
                 if (bestIdx == -1 || blockSize[j] < blockSize[bestIdx]) {
                     bestIdx = j;
+                    printf(" -> Best so far");
                 }
             }
+            printf("\n");
         }
 
         if (bestIdx != -1) {
             allocation[i] = bestIdx;
             blockSize[bestIdx] -= processSize[i];
+            printf("=> Process %d allocated (Remaining in block: %d)\n",
+                   i + 1, blockSize[bestIdx]);
+        } else {
+            printf("=> Process %d could NOT be allocated (No suitable block)\n", i + 1);
         }
+
+        // Show current remaining memory in all blocks
+        printf("Current remaining memory in all blocks: ");
+        for (j = 0; j < nBlocks; j++) {
+            printf("%d ", blockSize[j]);
+        }
+        printf("\n----------------------------------------\n");
     }
 
-    // Output
+    // Final Output
+    printf("\n===== Final Allocation Result =====\n");
     printf("\nMemory Block\tProcesses\tRemaining Memory\n");
     for (i = 0; i < nBlocks; i++) {
         printf("   %d\t\t", tempBlockSize[i]);
@@ -65,8 +85,8 @@ int main() {
     printf("\nProcess Allocation Details:\n");
     for (i = 0; i < nProcesses; i++) {
         if (allocation[i] != -1) {
-            printf("Process %d (Size %d) allocated to Block %d (Original Size %d)\n",
-                   i + 1, processSize[i], allocation[i] + 1, tempBlockSize[allocation[i]]);
+            printf("Process %d (Size %d) allocated to block of size %d\n",
+                   i + 1, processSize[i], tempBlockSize[allocation[i]]);
         } else {
             printf("Process %d (Size %d) not allocated.\n", i + 1, processSize[i]);
         }
