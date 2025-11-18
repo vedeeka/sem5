@@ -1,38 +1,32 @@
 #include <stdio.h>
 #include <stdlib.h>
+#define MAX 50
 
 int main() {
-    int n, head, total = 0;
+    int n, i, totalHeadMovement = 0, requests[MAX], head;
     printf("Enter number of requests: ");
     scanf("%d", &n);
-
-    int req[n], seq[n + 1];
-    printf("Enter request sequence: ");
-    for (int i = 0; i < n; i++)
-        scanf("%d", &req[i]);
-
-    printf("Enter initial head position: ");
+    printf("Enter Request Queue: ");
+    for (i = 0; i < n; i++)
+        scanf("%d", &requests[i]);
+    printf("Enter Current Head Position: ");
     scanf("%d", &head);
-
-    printf("\n--- FCFS Disk Scheduling ---\n");
-    printf("\n%-10s %-10s %-10s\n", "From", "To", "Movement");
-    printf("-----------------------------------\n");
-
-    int current = head;
-    seq[0] = head;
-
-    for (int i = 0; i < n; i++) {
-        int move = abs(current - req[i]);
-        printf("%-10d %-10d %-10d\n", current, req[i], move);
-        total += move;
-        current = req[i];
-        seq[i + 1] = current;
+    
+    printf("\n--- FCFS Disk Scheduling Algorithm ---\n");
+    printf("--------------------------------------------------\n");
+    printf("From\t\tTo\t\tDistance\n");
+    printf("--------------------------------------------------\n");
+    int currentHead = head;
+    for (i = 0; i < n; i++) {
+        int distance = abs(currentHead - requests[i]);
+        printf("%d\t\t%d\t\t%d\n", currentHead, requests[i], distance);
+        totalHeadMovement += distance;
+        currentHead = requests[i];
     }
-
-    printf("\nSeek Sequence: ");
-    for (int i = 0; i <= n; i++)
-        printf("%d ", seq[i]);
-
-    printf("\nTotal Head Movement = %d\n", total);
+    printf("--------------------------------------------------\n");
+    printf("\nSeek Sequence: %d", head);
+    for (i = 0; i < n; i++)
+        printf(" -> %d", requests[i]);
+    printf("\nTotal Number of Head Movements: %d\n", totalHeadMovement);
     return 0;
 }

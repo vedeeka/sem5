@@ -1,51 +1,49 @@
 #include <stdio.h>
 #include <stdlib.h>
+#define MAX 50
 
 int main() {
-    int n, head, total = 0;
+    int n, i, j, totalHeadMovement = 0, requests[MAX], visited[MAX] = {0}, head, currentHead, seekSequence[MAX + 1], seqIndex = 0;
     printf("Enter number of requests: ");
     scanf("%d", &n);
-
-    int req[n], done[n], seq[n + 1];
-    printf("Enter request sequence: ");
-    for (int i = 0; i < n; i++) {
-        scanf("%d", &req[i]);
-        done[i] = 0;
-    }
-
-    printf("Enter initial head position: ");
+    printf("Enter Request Queue: ");
+    for (i = 0; i < n; i++)
+        scanf("%d", &requests[i]);
+    printf("Enter Current Head Position: ");
     scanf("%d", &head);
+    printf("\n--- SSTF Disk Scheduling Algorithm ---\n");
+    printf("--------------------------------------------------\n");
+    printf("From\t\tTo\t\tDistance\n");
+    printf("--------------------------------------------------\n");
+    currentHead = head;
+    seekSequence[seqIndex++] = head;
 
-    printf("\n--- SSTF Disk Scheduling ---\n");
-    printf("\n%-10s %-10s %-10s\n", "From", "To", "Movement");
-    printf("-----------------------------------\n");
-
-    int current = head;
-    seq[0] = head;
-
-    for (int count = 0; count < n; count++) {
-        int min = 9999, index = -1;
-        for (int i = 0; i < n; i++) {
-            if (!done[i]) {
-                int dist = abs(current - req[i]);
-                if (dist < min) {
-                    min = dist;
-                    index = i;
+    for (i = 0; i < n; i++) {
+        int minDistance = 9999, nextIdx = -1;
+        for (j = 0; j < n; j++) {
+            if (!visited[j]) {
+                int distance = abs(currentHead - requests[j]);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nextIdx = j;
                 }
             }
         }
-
-        printf("%-10d %-10d %-10d\n", current, req[index], min);
-        total += min;
-        current = req[index];
-        done[index] = 1;
-        seq[count + 1] = current;
+        if (nextIdx != -1) {
+            printf("%d\t\t%d\t\t%d\n", currentHead, requests[nextIdx], minDistance);
+            totalHeadMovement += minDistance;
+            currentHead = requests[nextIdx];
+            visited[nextIdx] = 1;
+            seekSequence[seqIndex++] = currentHead; 
+        }
     }
-
+    printf("--------------------------------------------------\n");
     printf("\nSeek Sequence: ");
-    for (int i = 0; i <= n; i++)
-        printf("%d ", seq[i]);
-
-    printf("\nTotal Head Movement = %d\n", total);
+    for (i = 0; i < seqIndex; i++) {
+        printf("%d", seekSequence[i]);
+        if (i < seqIndex - 1)
+            printf(" -> ");
+    }
+    printf("\nTotal Number of Head Movements: %d\n", totalHeadMovement);
     return 0;
 }
