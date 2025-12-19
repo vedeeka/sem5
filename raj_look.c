@@ -33,51 +33,39 @@ int main() {
             break;
         }
     }
-    
-    printf("\n--- C-LOOK Disk Scheduling Algorithm ---\n");
+    printf("\n--- LOOK Disk Scheduling Algorithm ---\n");
     printf("\n--------------------------------------------------\n");
     printf("From\t\tTo\t\tDistance\n");
     printf("--------------------------------------------------\n");
-    if (direction == 1) {  
+
+    if (direction == 1) { 
         for (i = pos; i < n; i++) {
             printf("%d\t\t%d\t\t%d\n", head, requests[i], abs(head - requests[i]));
             totalHeadMovement += abs(head - requests[i]);
             head = requests[i];
             seekSequence[count++] = head;
         }
-        if (pos > 0) {
-            printf("%d\t\t%d\t\t%d\n", head, requests[0], abs(head - requests[0]));
-            totalHeadMovement += abs(head - requests[0]);
-            head = requests[0];
-            seekSequence[count++] = head;
-        }
-        
-        for (i = 1; i < pos; i++) {
-            printf("%d\t\t%d\t\t%d\n", head, requests[i], abs(head - requests[i]));
-            totalHeadMovement += abs(head - requests[i]);
-            head = requests[i];
-            seekSequence[count++] = head;
-        }
-    } else {  
         for (i = pos - 1; i >= 0; i--) {
             printf("%d\t\t%d\t\t%d\n", head, requests[i], abs(head - requests[i]));
             totalHeadMovement += abs(head - requests[i]);
             head = requests[i];
             seekSequence[count++] = head;
         }
-        if (pos < n) {
-            printf("%d\t\t%d\t\t%d\n", head, requests[n - 1], abs(head - requests[n - 1]));
-            totalHeadMovement += abs(head - requests[n - 1]);
-            head = requests[n - 1];
+    } else { 
+        for (i = pos - 1; i >= 0; i--) {
+            printf("%d\t\t%d\t\t%d\n", head, requests[i], abs(head - requests[i]));
+            totalHeadMovement += abs(head - requests[i]);
+            head = requests[i];
             seekSequence[count++] = head;
         }
-        for (i = n - 2; i >= pos; i--) {
+        for (i = pos; i < n; i++) {
             printf("%d\t\t%d\t\t%d\n", head, requests[i], abs(head - requests[i]));
             totalHeadMovement += abs(head - requests[i]);
             head = requests[i];
             seekSequence[count++] = head;
         }
     }
+
     printf("--------------------------------------------------\n");
     printf("\nSeek Sequence: %d -> ", h);
     for (i = 0; i < count; i++) {

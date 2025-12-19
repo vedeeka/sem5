@@ -51,7 +51,6 @@ int main() {
             head = requests[0];
             seekSequence[count++] = head;
         }
-        
         for (i = 1; i < pos; i++) {
             printf("%d\t\t%d\t\t%d\n", head, requests[i], abs(head - requests[i]));
             totalHeadMovement += abs(head - requests[i]);
