@@ -1,99 +1,224 @@
 #include <stdio.h>
+#include <stdbool.h>
+
+#define MAX_P 10
+#define MAX_R 10
+
+// Function to print a matrix
+void printMatrix(int mat[MAX_P][MAX_R], int n, int m, const char* name) {
+    printf("\n%s matrix:\n", name);
+    printf("       ");
+    for (int j = 0; j < m; j++)
+        printf("R%d   ", j);
+    printf("\n-----------------------------------\n");
+    for (int i = 0; i < n; i++) {
+        printf("P%-2d | ", i);
+        for (int j = 0; j < m; j++)
+            printf("%-4d ", mat[i][j]);
+        printf("\n");
+    }
+}
+
+// Function to print available resources
+void printAvailable(int avail[MAX_R], int m) {
+    printf("\nAvailable resources:\n");
+    for (int j = 0; j < m; j++)
+        printf("R%d: %d  ", j, avail[j]);
+    printf("\n");
+}
+
+// Safety algorithm
+bool safetyAlgo(int alloc[MAX_P][MAX_R], int need[MAX_P][MAX_R], int avail[MAX_R], int n, int m) {
+    int work[MAX_R];
+    bool finish[MAX_P] = {false};
+    int safeSeq[MAX_P];
+    int count = 0;
+
+    for (int i = 0; i < m; i++)
+        work[i] = avail[i];
+
+    while (count < n) {
+        bool found = false;
+        for (int i = 0; i < n; i++) {
+            if (!finish[i]) {
+                int j;
+                for (j = 0; j < m; j++)
+                    if (need[i][j] > work[j])
+                        break;
+                if (j == m) {
+                    for (int k = 0; k < m; k++)
+                        work[k] += alloc[i][k];
+                    safeSeq[count++] = i;
+                    finish[i] = true;
+                    found = true;
+                }
+            }
+        }
+        if (!found) {
+            printf("\n⚠️  System is NOT in a safe state.\n");
+            return false;
+        }
+    }
+
+    printf("\n✅ System is in a SAFE state.\nSafe sequence: ");
+    for (int i = 0; i < n; i++)
+        printf("P%d ", safeSeq[i]);
+    printf("\n");
+    return true;
+}
+
+// Function to handle resource requests
+void requestResources(int alloc[MAX_P][MAX_R], int max[MAX_P][MAX_R],
+                      int need[MAX_P][MAX_R], int avail[MAX_R], int n, int m) {
+    char choice;
+    while (1) {
+        printf("\nDo you want to make an immediate request? (y/n): ");
+        scanf(" %c", &choice);
+        if (choice != 'y' && choice != 'Y')
+            break;
+
+        int p;
+        printf("Enter process number (0-%d): ", n - 1);
+        scanf("%d", &p);
+        if (p < 0 || p >= n) {
+            printf("❌ Invalid process number.\n");
+            continue;
+        }
+
+        int req[MAX_R];
+        printf("Enter request for each resource type: ");
+        for (int j = 0; j < m; j++)
+            scanf("%d", &req[j]);
+
+        // Check request ≤ need
+        bool valid = true;
+        for (int j = 0; j < m; j++) {
+            if (req[j] > need[p][j]) {
+                printf("⚠️  Process P%d is asking for more than its declared maximum need.\n", p);
+                printf("Process must wait -- resources are busy.\n");
+                valid = false;
+                break;
+            }
+        }
+        if (!valid) {
+            printMatrix(alloc, n, m, "Allocation");
+            printMatrix(need, n, m, "Need");
+            printAvailable(avail, m);
+            continue;
+        }
+
+        // Check request ≤ available
+        for (int j = 0; j < m; j++) {
+            if (req[j] > avail[j]) {
+                printf("\n⚠️  Resources not available right now.\n");
+                printf("Process P%d must wait.\n", p);
+                valid = false;
+                break;
+            }
+        }
+        if (!valid) {
+            printMatrix(alloc, n, m, "Allocation");
+            printMatrix(need, n, m, "Need");
+            printAvailable(avail, m);
+            continue;
+        }
+
+        // Check if all available will become zero
+        bool allAvailableZero = true;
+        for (int j = 0; j < m; j++) {
+            if (avail[j] - req[j] != 0)
+                allAvailableZero = false;
+        }
+        if (allAvailableZero) {
+            printf("\n⚠️  Request violates Banker's algorithm!\n");
+            printf("Process must wait -- resources are busy.\n");
+            printMatrix(alloc, n, m, "Allocation");
+            printMatrix(need, n, m, "Need");
+            printAvailable(avail, m);
+            continue;
+        }
+
+        // Save old state
+        int oldAvail[MAX_R];
+        int oldAlloc[MAX_P][MAX_R];
+        int oldNeed[MAX_P][MAX_R];
+
+        for (int j = 0; j < m; j++)
+            oldAvail[j] = avail[j];
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < m; j++) {
+                oldAlloc[i][j] = alloc[i][j];
+                oldNeed[i][j] = need[i][j];
+            }
+
+        // Pretend to allocate
+        for (int j = 0; j < m; j++) {
+            avail[j] -= req[j];
+            alloc[p][j] += req[j];
+            need[p][j] -= req[j];
+        }
+
+        // Check safety
+        if (safetyAlgo(alloc, need, avail, n, m))
+            printf("✅ Request granted.\n");
+        else {
+            printf("❌ Request cannot be granted (unsafe state).\n");
+            for (int j = 0; j < m; j++)
+                avail[j] = oldAvail[j];
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < m; j++) {
+                    alloc[i][j] = oldAlloc[i][j];
+                    need[i][j] = oldNeed[i][j];
+                }
+        }
+
+        // Display updated matrices
+        printMatrix(alloc, n, m, "Allocation");
+        printMatrix(need, n, m, "Need");
+        printAvailable(avail, m);
+    }
+}
 
 int main() {
-    int numBlocks, numProcesses;
+    int n, m;
+    int alloc[MAX_P][MAX_R], max[MAX_P][MAX_R], need[MAX_P][MAX_R], avail[MAX_R];
 
-    printf("Enter number of memory blocks: ");
-    scanf("%d", &numBlocks);
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+    printf("Enter number of resource types: ");
+    scanf("%d", &m);
 
-    int blockSize[numBlocks], tempBlockSize[numBlocks];
+    printf("\nEnter Allocation matrix (%d x %d):\n", n, m);
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < m; j++)
+            scanf("%d", &alloc[i][j]);
 
-    printf("Enter sizes of memory blocks:\n");
-    for (int i = 0; i < numBlocks; i++) {
-        printf("Block %d: ", i + 1);
-        scanf("%d", &blockSize[i]);
-        tempBlockSize[i] = blockSize[i];
-    }
+    printf("\nEnter Max matrix (%d x %d):\n", n, m);
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < m; j++)
+            scanf("%d", &max[i][j]);
 
-    printf("\nEnter number of processes: ");
-    scanf("%d", &numProcesses);
+    printf("\nEnter Available resources (%d values):\n", m);
+    for (int j = 0; j < m; j++)
+        scanf("%d", &avail[j]);
 
-    int processSize[numProcesses];
-    for (int i = 0; i < numProcesses; i++) {
-        printf("Process %d size: ", i + 1);
-        scanf("%d", &processSize[i]);
-    }
+    // Compute Need matrix
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < m; j++)
+            need[i][j] = max[i][j] - alloc[i][j];
 
-    int allocation[numProcesses];
-    for (int i = 0; i < numProcesses; i++) {
-        allocation[i] = -1; 
-    }
+    // Display matrices
+    printMatrix(alloc, n, m, "Allocation");
+    printMatrix(max, n, m, "Max");
+    printMatrix(need, n, m, "Need");
+    printAvailable(avail, m);
 
-    printf("\n===== First Fit Allocation Process =====\n");
+    // Initial safety check
+    printf("\nInitial safety check:\n");
+    safetyAlgo(alloc, need, avail, n, m);
 
-    for (int i = 0; i < numProcesses; i++) {
-        printf("\nIteration %d: Trying to allocate Process %d (Size %d)\n", i + 1, i + 1, processSize[i]);
-        for (int j = 0; j < numBlocks; j++) {
-            printf("  Checking block (Available %d)... ", blockSize[j]);
-            if (blockSize[j] >= processSize[i]) {
-                allocation[i] = j;
-                blockSize[j] -= processSize[i];
-                printf("Fits -> Allocated\n");
-                break;
-            } else {
-                printf("Does not fit\n");
-            }
-        }
-
-        if (allocation[i] == -1) {
-            printf("=> Process %d could NOT be allocated (No suitable block found)\n", i + 1);
-        }
-
-        // Show current remaining memory in all blocks
-        printf("Current remaining memory in all blocks: ");
-        for (int k = 0; k < numBlocks; k++) {
-            printf("%d ", blockSize[k]);
-        }
-        printf("\n----------------------------------------\n");
-    }
-
-    int used[numBlocks];
-    for (int i = 0; i < numBlocks; i++)
-        used[i] = 0;
-
-    int total = 0;
-
-    printf("\n===== Final Allocation Result =====\n");
-    printf("\nMemory Block\tProcesses\tRemaining Memory\n");
-    for (int i = 0; i < numBlocks; i++) {
-        printf("   %d\t\t", tempBlockSize[i]);
-
-        int hasProcess = 0;
-        for (int j = 0; j < numProcesses; j++) {
-            if (allocation[j] == i) {
-                used[i] = 1;
-                printf("%d  ", processSize[j]);
-                hasProcess = 1;
-            }
-        }
-
-        if (!hasProcess)
-            printf("X");
-
-        printf("\t\t%d\n", blockSize[i]);
-        total += blockSize[i];
-    }
-
-    printf("\nThe total memory available: %d\n\n", total);
-
-    for (int i = 0; i < numProcesses; i++) {
-        if (allocation[i] != -1)
-            printf("Process %d (size %d) has been allocated block of size %d\n", 
-                   i + 1, processSize[i], tempBlockSize[allocation[i]]);
-        else
-            printf("Process %d (size %d) has not been allocated.\n", 
-                   i + 1, processSize[i]);
-    }
+    // Handle requests
+    requestResources(alloc, max, need, avail, n, m);
 
     return 0;
 }
