@@ -1,99 +1,116 @@
 #include <stdio.h>
-#include <stdlib.h>
-#define MAX 50
+#define MAX 10
+#include <string.h>
+struct process {
+    char name[MAX];
+    int at, bt, tat, wt,pr,rt;
+};
 
+int n;
+
+void fcfs(struct process p[]) {
+    int ct = 0, atat = 0, awt = 0;
+    int end[MAX];
+int indx=0;
+int min_bt;
+int order[MAX];
+int done=0;
+    char gantt[MAX][MAX];
+    int time[MAX], g = 0;
+int completed[MAX]={0};
+for(int i=0;i<n;i++)
+{
+    p[i].rt=0;
+}
+for(int i=0;i<n;i++)
+    time[i]=-1;
+
+while (done<n)
+{
+
+
+
+    indx=-1;
+    min_bt=1e9;
+    for(int j=0;j<n;j++){
+        if(p[j].at<=ct && completed[j]==0){
+            if(p[j].bt<min_bt){
+                min_bt=p[j].bt;
+                indx=j;
+            }
+        }
+
+    }
+        if (indx == -1) {
+            ct++;
+            continue;
+        }
+
+        if (g == 0 || strcmp(gantt[g-1], p[indx].name)) {
+            strcpy(gantt[g], p[indx].name);
+            time[g++] = ct ;
+        }
+
+
+if(ct < p[indx].at)
+    ct = p[indx].at;
+
+ct++;                // execute 1 unit
+p[indx].rt++;        // increase executed time
+
+if(p[indx].rt==p[indx].bt){
+
+    p[indx].tat = ct - p[indx].at;
+    p[indx].wt = p[indx].tat - p[indx].bt;
+    atat += p[indx].tat;
+    awt += p[indx].wt;
+ 
+    completed[indx]=1;
+    order[done]=indx;
+    done++;
+}
+    
+}
+    // table
+    printf("\n+------------+----------+----------+----------+----------+\n");
+    printf("| %-10s | %-8s | %-8s | %-8s | %-8s |\n",
+           "Process","AT","BT","TAT","WT");
+    printf("+------------+----------+----------+----------+----------+\n");
+    for (int i = 0; i < n; i++)
+        printf("| %-10s | %-8d | %-8d | %-8d | %-8d |\n",
+               p[i].name, p[i].at, p[i].bt, p[i].tat, p[i].wt);
+    printf("+------------+----------+----------+----------+----------+\n");
+
+    // Gantt chart
+    printf("\nGantt Chart:\n---------------------------------------------\n| ");
+    for (int i = 0; i < g; i++)
+        printf("%-8s | ", gantt[i]);
+    printf("\n---------------------------------------------\n0 ");
+    for (int i = 0; i < g; i++)
+        printf("%-8d ", time[i]);
+    printf("\n---------------------------------------------\n");
+
+    printf("Average Turnaround Time: %.2f\n", (float)atat / n);
+    printf("Average Waiting Time   : %.2f\n", (float)awt / n);
+}
 
 int main() {
-    int n, i, j, temp, requests[MAX], seekSequence[MAX + 1], head, h, prevHead, direction, totalHeadMovement = 0, count = 0;
-
-    printf("Enter number of requests: ");
+    printf("Enter number of processes: ");
     scanf("%d", &n);
-    printf("Enter Request Queue: ");
-    for (i = 0; i < n; i++)
-        scanf("%d", &requests[i]);
-    printf("Enter Current Head Position: ");
-    scanf("%d", &head);
-    h = head;
-    printf("Enter Previous Head Position: ");
-    scanf("%d", &prevHead);
 
-    for(int i=0;i<n;i++){
-        for(int j=0;j<n-i-1;j++){
-            if(requests[j]>requests[j+1]){
-                temp=requests[j];
-                requests[j]=requests[j+1];
-                requests[j+1]=temp;
-        }
-    }
-    }
-    int pos=0;
-    for(int i=0;i<n;i++){
-        if(head<requests[i]){
-            pos=i;
-            break;
-        }
+    struct process p[n];
+
+    for (int i = 0; i < n; i++) {
+  
+        scanf("%s", p[i].name);
+       
+        scanf("%d", &p[i].at);
+
+        scanf("%d", &p[i].bt);
+
+  
     }
 
-    direction = (head > prevHead) ? 1 : 0;
-
-if(direction==1){
-for(int i=pos;i<n ;i++){
-printf("%d\t\t%d\t\t%d\n",head,requests[i],abs(head-requests[i]));
-
-totalHeadMovement+=abs(head-requests[i]);
-head=abs(head-requests[i]);
-seekSequence[count++]=head;
-}
-if(pos>0){
-printf("%d\t\t%d\t\t%d\n",head,requests[0],abs(head-requests[0]));
-
-totalHeadMovement+=abs(head-requests[0]);
-head=abs(head-requests[0]);
-seekSequence[count++]=head;
-}
-for(int i=1;i<n ;i++){
-printf("%d\t\t%d\t\t%d\n",head,requests[i],abs(head-requests[i]));
-
-totalHeadMovement+=abs(head-requests[i]);
-head=abs(head-requests[i]);
-seekSequence[count++]=head;
-}
-} else{
-for(int i=pos;i>=0;i--){
-printf("%d\t\t%d\t\t%d\n",head,requests[i],abs(head-requests[i]));
-
-totalHeadMovement+=abs(head-requests[i]);
-head=abs(head-requests[i]);
-seekSequence[count++]=head;
-}
-if(pos<n){
-printf("%d\t\t%d\t\t%d\n",head,requests[n-1],abs(head-requests[n-1]));
-
-totalHeadMovement+=abs(head-requests[n-1]);
-head=abs(head-requests[n-1]);
-seekSequence[count++]=head;
-}
-for(int i=n-1;i>pos ;i--){
-printf("%d\t\t%d\t\t%d\n",head,requests[i],abs(head-requests[i]));
-
-totalHeadMovement+=abs(head-requests[i]);
-head=abs(head-requests[i]);
-seekSequence[count++]=head;
-}
-}
-
-
-
-
-
-
-    printf("--------------------------------------------------\n");
-    printf("\nSeek Sequence: %d -> ", h);
-    for (i = 0; i < count; i++) {
-        printf("%d", seekSequence[i]);
-        if (i != count - 1)
-            printf(" -> ");
-    }
-    printf("\nTotal Number of Head Movements: %d\n", totalHeadMovement);
+    fcfs(p);
     return 0;
 }
