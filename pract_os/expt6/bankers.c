@@ -32,7 +32,11 @@ bool safetyAlgo(int alloc[MAX_P][MAX_R], int need[MAX_P][MAX_R], int avail[MAX_R
         for (int i = 0; i < n; i++) {
             if (!finish[i]) {
                 int j;
-                for (j = 0; j < m && need[i][j] <= work[j]; j++) break;
+               for (j = 0; j < m; j++) {
+    if (need[i][j] > work[j])
+        break;
+}
+
                 if (j == m) {
                     for (int k = 0; k < m; k++) work[k] += alloc[i][k];
                     finish[i] = true;
